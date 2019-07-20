@@ -18,8 +18,6 @@ package com.google.firebase.udacity.friendlychat;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.v7.app.AppCompatActivity;
 import android.text.Editable;
 import android.text.InputFilter;
 import android.text.TextWatcher;
@@ -56,6 +54,9 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -178,8 +179,8 @@ public class MainActivity extends AppCompatActivity {
                     onSignedOutCleanup();
 
                     List<AuthUI.IdpConfig> providers = Arrays.asList(
-                            new AuthUI.IdpConfig.Builder(AuthUI.EMAIL_PROVIDER).build(),
-                            new AuthUI.IdpConfig.Builder(AuthUI.GOOGLE_PROVIDER).build()
+                            new AuthUI.IdpConfig.EmailBuilder().build(),
+                            new AuthUI.IdpConfig.GoogleBuilder().build()
                     );
 
                     startActivityForResult(
@@ -199,9 +200,9 @@ public class MainActivity extends AppCompatActivity {
         // Enabling developer mode allows many more requests to be made per hour, so developers
         // can test different config values during development.
         FirebaseRemoteConfigSettings configSettings = new FirebaseRemoteConfigSettings.Builder()
-                .setDeveloperModeEnabled(BuildConfig.DEBUG)
+                .setMinimumFetchIntervalInSeconds(3600)
                 .build();
-        firebaseRemoteConfig.setConfigSettings(configSettings);
+        firebaseRemoteConfig.setConfigSettingsAsync(configSettings);
 
         // Define default config values. Defaults are used when fetched config values are not
         // available. Eg: if an error occurred fetching values from the server.
@@ -234,7 +235,7 @@ public class MainActivity extends AppCompatActivity {
                     .addOnSuccessListener(this, new OnSuccessListener<UploadTask.TaskSnapshot>() {
                         public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
                             // When the image has successfully uploaded, we get its download URL
-                            Uri downloadUrl = taskSnapshot.getDownloadUrl();
+                            Uri downloadUrl = taskSnapshot.getUploadSessionUri();
 
                             // Set the download URL to the message box, so that the user can send it to the database
                             FriendlyMessage friendlyMessage = new FriendlyMessage(null, mUsername, downloadUrl.toString());
@@ -302,7 +303,7 @@ public class MainActivity extends AppCompatActivity {
 
                 public void onChildChanged(DataSnapshot dataSnapshot, String s) {
                     FriendlyMessage friendlyMessage = dataSnapshot.getValue(FriendlyMessage.class);
-                    mMessageAdapter.remove(mMessageAdapter.getItem(mMessageAdapter.getCount()-1));
+                    mMessageAdapter.remove(mMessageAdapter.getItem(mMessageAdapter.getCount() - 1));
                     mMessageAdapter.add(friendlyMessage);
                 }
 
@@ -329,19 +330,17 @@ public class MainActivity extends AppCompatActivity {
 
     // Fetch the config to determine the allowed length of messages.
     public void fetchConfig() {
-        long cacheExpiration = 3600; // 1 hour in seconds
-        // If developer mode is enabled reduce cacheExpiration to 0 so that each fetch goes to the
-        // server. This should not be used in release builds.
-        if (firebaseRemoteConfig.getInfo().getConfigSettings().isDeveloperModeEnabled()) {
-            cacheExpiration = 0;
-        }
-        firebaseRemoteConfig.fetch(cacheExpiration)
-                .addOnSuccessListener(new OnSuccessListener<Void>() {
+        FirebaseRemoteConfigSettings configSettings = new FirebaseRemoteConfigSettings.Builder()
+                .setMinimumFetchIntervalInSeconds(3600)
+                .build();
+        firebaseRemoteConfig.setConfigSettingsAsync(configSettings);
+        firebaseRemoteConfig.fetchAndActivate()
+                .addOnSuccessListener(new OnSuccessListener<Boolean>() {
                     @Override
-                    public void onSuccess(Void aVoid) {
+                    public void onSuccess(Boolean aBoolean) {
                         // Make the fetched config available
                         // via FirebaseRemoteConfig get<type> calls, e.g., getLong, getString.
-                        firebaseRemoteConfig.activateFetched();
+                        firebaseRemoteConfig.activate();
 
                         // Update the EditText length limit with
                         // the newly retrieved values from Remote Config.

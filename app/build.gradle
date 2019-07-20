@@ -2,21 +2,14 @@ apply plugin: 'com.android.application'
 
 
 android {
-    compileSdkVersion 26
-    buildToolsVersion "26.0.1"
-
-    dataBinding {
-        enabled = true
-    }
-
+    compileSdkVersion 29
     defaultConfig {
         applicationId "com.google.firebase.udacity.friendlychat"
         minSdkVersion 19
-        targetSdkVersion 26
+        targetSdkVersion 29
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
-        resConfigs "auto"
     }
 
     buildTypes {
@@ -26,33 +19,42 @@ android {
 
         }
     }
+
+    dataBinding {
+        enabled = true
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
     packagingOptions {
         exclude 'META-INF/LICENSE'
         exclude 'META-INF/LICENSE-FIREBASE.txt'
         exclude 'META-INF/NOTICE'
     }
-
 }
 
 dependencies {
-    compile fileTree(include: ['*.jar'], dir: 'libs')
-    androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
-        exclude group: 'com.android.support', module: 'support-annotations'
-    })
-    testCompile 'junit:junit:4.12'
-    compile 'com.android.support:design:26.0.0-alpha1'
-    compile 'com.android.support:appcompat-v7:26.0.0-alpha1'
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
+    implementation "androidx.appcompat:appcompat:$version_appcompat"
+    implementation "androidx.fragment:fragment:$version_fragment"
+    implementation "androidx.constraintlayout:constraintlayout:$version_constraint_layout"
+    implementation "com.google.android.material:material:$version_material"
 
-    // Displaying images
-    compile 'com.github.bumptech.glide:glide:3.7.0'
-    compile 'com.google.firebase:firebase-database:11.0.4'
-    compile 'com.google.firebase:firebase-storage:11.0.4'
-    compile 'com.google.firebase:firebase-messaging:11.0.4'
-    compile 'com.google.firebase:firebase-config:11.0.4'
-    compile 'com.google.firebase:firebase-auth:11.0.4'
-//    compile 'com.firebaseui:firebase-ui:2.2.0'
-    compile ('com.firebaseui:firebase-ui:2.2.0',{
-        exclude group: 'com.android.support'
-    })
+    //Glide
+    implementation 'com.github.bumptech.glide:glide:4.9.0'
+    
+    //Firebase
+    implementation 'com.google.firebase:firebase-database:18.0.0'
+    implementation 'com.google.firebase:firebase-storage:18.1.0'
+    implementation 'com.google.firebase:firebase-messaging:19.0.1'
+    implementation 'com.google.firebase:firebase-config:18.0.0'
+    implementation 'com.google.firebase:firebase-auth:18.1.0'
+    implementation 'com.firebaseui:firebase-ui-auth:4.3.1'
+
+    testImplementation 'junit:junit:4.13-beta-3'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
 }
 apply plugin: 'com.google.gms.google-services'
